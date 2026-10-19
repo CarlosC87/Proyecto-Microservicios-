@@ -1,0 +1,24 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: vehicle-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/vehicles}
+    username: ${DB_USER:fleet}
+    password: ${DB_PASSWORD:fleet}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+
+app:
+  seed:
+    enabled: true   # inserta un vehículo de ejemplo (veh-001) si no existe
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

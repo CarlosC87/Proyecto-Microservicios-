@@ -1,0 +1,20 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: driver-service
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/drivers}
+      auto-index-creation: true   # crea el índice de assignedVehicleId
+
+app:
+  seed:
+    enabled: true   # inserta un conductor de ejemplo (drv-552) si no existe
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

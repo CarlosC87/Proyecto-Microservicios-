@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: fleet-composite-service
+
+# URLs y timeout de los microservicios que orquesta este composite
+downstream:
+  vehicle-url: ${VEHICLE_SERVICE_URL:http://localhost:8081}
+  driver-url: ${DRIVER_SERVICE_URL:http://localhost:8082}
+  timeout: 2s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

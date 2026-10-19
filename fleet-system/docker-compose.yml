@@ -1,0 +1,68 @@
+# Levanta todo el sistema:  docker compose up --build
+# (Puedes mover este archivo al repo del composite o a un repo de infraestructura.)
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: vehicles
+      POSTGRES_USER: fleet
+      POSTGRES_PASSWORD: fleet
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fleet -d vehicles"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  vehicle-service:
+    build: ./vehicle-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/vehicles
+      DB_USER: fleet
+      DB_PASSWORD: fleet
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  driver-service:
+    build: ./driver-service
+    environment:
+      MONGO_URI: mongodb://mongo:27017/drivers
+    ports:
+      - "8082:8082"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  fleet-composite-service:
+    build: ./fleet-composite-service
+    environment:
+      VEHICLE_SERVICE_URL: http://vehicle-service:8081
+      DRIVER_SERVICE_URL: http://driver-service:8082
+    ports:
+      - "8080:8080"
+    depends_on:
+      - vehicle-service
+      - driver-service
+
+volumes:
+  pg-data:
+  mongo-data:
